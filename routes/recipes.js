@@ -14,11 +14,18 @@ router.get("/search", async (req, res, next) => {
     const diet = req.query.diet;
     const intolerance = req.query.intolerance;
     const number = req.query.number || 5;
-    const results = await recipes_utils.searchRecipe(recipeName, cuisine, diet, intolerance, number);
+    const results = await recipes_utils.searchRecipe(
+      recipeName,
+      cuisine,
+      diet,
+      intolerance,
+      number
+    );
     res.send(results);
   } catch (error) {
     next(error);
   }
+});
 
 /**
  * This path returns a full details of a recipe by its id
