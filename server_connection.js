@@ -1,5 +1,5 @@
 var path = require("path");
-var app = require('../assignment2-1-319068789_207219742/src/main');
+var app = require('./main');
 var https = require('https');
 var fs = require('fs');
 
@@ -74,7 +74,7 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-server.address("http://AlonAndYoni.cs.bgu.ac.il/");
+server.address("https://AlonAndYoni.cs.bgu.ac.il");
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
