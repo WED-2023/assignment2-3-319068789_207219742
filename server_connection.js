@@ -1,19 +1,19 @@
 var path = require("path");
-var app = require('../assignment2-1-319068789_207219742/src/main');
-var https = require('https');
-var fs = require('fs');
+var app = require("../assignment2-1-319068789_207219742/src/main");
+var https = require("https");
+var fs = require("fs");
 
 var httpsOptions = {
-  key: fs.readFileSync(path.join(__dirname, "privkey.pem")),//server.key
-  cert: fs.readFileSync(path.join(__dirname, "fullchain.pem")),//server.cert
-}
+  key: fs.readFileSync(path.join(__dirname, "privkey.pem")), //server.key
+  cert: fs.readFileSync(path.join(__dirname, "fullchain.pem")), //server.cert
+};
 
 /**
  * Get port from environment and store in Express.
  */
-var port = normalizePort(process.env.PORT || '443');
+var port = normalizePort(process.env.PORT || "443");
 
-app.set('port', port);
+app.set("port", port);
 
 /**
  * Create HTTP server.
@@ -24,8 +24,8 @@ var server = https.createServer(httpsOptions, app);
  * Listen on provided port, on all network interfaces.
  */
 server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+server.on("error", onError);
+server.on("listening", onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -50,20 +50,18 @@ function normalizePort(val) {
  * Event listener for HTTP server "error" event.
  */
 function onError(error) {
-  if (error.syscall !== 'listen') {
+  if (error.syscall !== "listen") {
     throw error;
   }
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
       process.exit(1);
       break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
       process.exit(1);
       break;
     default:
@@ -74,11 +72,9 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-server.address("http://AlonAndYoni.cs.bgu.ac.il/");
+server.address("http://localhost:3000");
 function onListening() {
   var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-    console.log(`Server listen in port ${port} in adrress ${addr.address}`);
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  console.log(`Server listen in port ${port} in adrress ${addr.address}`);
 }
