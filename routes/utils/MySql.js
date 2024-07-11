@@ -6,7 +6,7 @@ const config = {
   host: process.env.host, //"localhost"
   user: process.env.user, //"root"
   password: "AlonAndYoni",
-  database: "VueRecipesDB",
+  database: "AlonAndYoniDB",
 };
 const pool = new mysql.createPool(config);
 
