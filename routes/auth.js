@@ -1,6 +1,5 @@
 var express = require("express");
 var router = express.Router();
-const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
 
@@ -78,6 +77,76 @@ router.post("/auth/Login", async (req, res, next) => {
 router.post("/auth/Logout", function (req, res) {
   req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
   res.send({ success: true, message: "logout succeeded" });
+});
+
+router.get("/familyRecipes", async (req, res, next) => {
+  try {
+
+    
+    const recipes = await DButils.execQuery(
+      `SELECT id, image, title, readyInMinutes, aggregateLikes, vegetarian, vegan, glutenFree
+      FROM recipes
+      WHERE id IN (77777, 88888, 99999);`
+    );
+
+    res.status(200).json({ recipes });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * This path gets body with recipeId and save this recipe in the favorites list of the logged-in user
+ */
+router.post('/favorites', async (req, res, next) => {
+  try {
+    const username = req.body.username;
+    const recipe_id = parseInt(req.body.recipe_id, 10); // Ensure recipe_id is an integer
+
+    // Insert into the database
+    await DButils.execQuery(
+      `INSERT INTO favoriteRecipes (username, recipeId) VALUES ('${username}', ${recipe_id})`
+    );
+    res.status(201).send({ message: "added to favorites", success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+router.delete('/favorites', async (req, res, next) => {
+  try {
+    const username = req.body.username;
+    const recipe_id = parseInt(req.body.recipe_id, 10); // Ensure recipe_id is an integer
+
+    await DButils.execQuery(
+      `DELETE FROM favoriteRecipes WHERE username = '${username}' AND recipeId = ${recipe_id}`
+    );
+
+    res.status(200).send({ message: "removed from favorites", success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+router.get('/favorites', async (req, res, next) => {
+  try {
+    const username = req.query.username;
+    const recipe_id = parseInt(req.query.recipe_id, 10);  // Ensure recipe_id is an integer
+
+    const result = await DButils.execQuery(
+      `SELECT * FROM favoriteRecipes WHERE username = '${username}' AND recipeId = ${recipe_id}`
+    );
+
+    if (result.length > 0) {
+      res.status(200).send({ isFavorite: true });
+    } else {
+      res.status(200).send({ isFavorite: false });
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
