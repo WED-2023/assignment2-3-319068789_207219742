@@ -32,6 +32,19 @@ app.use(express.static(path.join(__dirname, '../assignment2-1-319068789_20721974
 app.get("/",function(req,res)
 { 
   //remote: 
+
+
+
+
+
+
+
+
+
+
+
+
+  
   res.sendFile(path.join(__dirname, '../assignment2-1-319068789_207219742/dist/index.html'));
   //local:
   //res.sendFile(__dirname+"/index.html");
