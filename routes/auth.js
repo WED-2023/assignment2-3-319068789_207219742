@@ -260,10 +260,26 @@ router.post("/uploadRecipe", async (req, res, next) => {
 
     // Insert recipe into the recipes table and get the new recipe ID
     const result = await DButils.execQuery(
-      `INSERT INTO recipes (title, readyInMinutes, image, servings, summary, ingredients, instructions, aggregateLikes)
-      VALUES ('${title}', ${readyInMinutes}, '${image}', ${servings}, '${summary}', '${ingredients}', '${instructions}', 0)`
+      `INSERT INTO recipes (title, readyInMinutes, image, servings, summary, aggregateLikes)
+      VALUES ('${title}', ${readyInMinutes}, '${image}', ${servings}, '${summary}', 0)`
     );
     const newRecipeId = result.insertId;
+
+    // Insert ingredients into the ingredients table
+    for (const ingredient of ingredients) {
+      await DButils.execQuery(
+        `INSERT INTO ingredients (recipeId, amount, unit, name)
+        VALUES (${newRecipeId}, ${ingredient.amount}, '${ingredient.unit}', '${ingredient.name}')`
+      );
+    }
+
+    // Insert instructions into the instructions table
+    for (let i = 0; i < instructions.length; i++) {
+      await DButils.execQuery(
+        `INSERT INTO instructions (recipeId, stepNumber, description)
+        VALUES (${newRecipeId}, ${i + 1}, '${instructions[i]}')`
+      );
+    }
 
     // Insert cuisines into the recipe_cuisines table
     for (const cuisine of cuisines) {
@@ -300,6 +316,7 @@ router.post("/uploadRecipe", async (req, res, next) => {
   }
 });
 
+
 router.get("/getFullRecipe", async (req, res, next) => {
   try {
     const recipe_id = req.query.recipe_id;
@@ -320,6 +337,16 @@ router.get("/getFullRecipe", async (req, res, next) => {
     }
 
     const recipe = recipeResult[0];
+
+    // Fetch the instructions related to the recipe
+    const instructions = await DButils.execQuery(
+      `SELECT stepNumber, description FROM instructions WHERE recipeId = ${recipe_id} ORDER BY stepNumber ASC`
+    );
+
+    // Fetch the ingredients related to the recipe
+    const ingredients = await DButils.execQuery(
+      `SELECT amount, unit, name FROM ingredients WHERE recipeId = ${recipe_id}`
+    );
 
     // Fetch the cuisines related to the recipe
     const cuisines = await DButils.execQuery(
@@ -342,6 +369,12 @@ router.get("/getFullRecipe", async (req, res, next) => {
 
     res.status(200).send({
       ...recipe,
+      instructions: instructions.map(i => i.description),
+      ingredients: ingredients.map(ing => ({
+        amount: ing.amount,
+        unit: ing.unit,
+        name: ing.name
+      })),
       cuisines: cuisines.map(c => c.name),
       diets: diets.map(d => d.name),
       intolerances: intolerances.map(i => i.name),
@@ -351,6 +384,7 @@ router.get("/getFullRecipe", async (req, res, next) => {
     next(error);
   }
 });
+
 
 
 async function getRecipePreviewList(recipeIds) {
