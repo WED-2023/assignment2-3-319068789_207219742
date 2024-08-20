@@ -242,6 +242,9 @@ router.post("/uploadImage", upload.single("image"), (req, res) => {
 
 
 router.post("/uploadRecipe", async (req, res, next) => {
+  
+  console.log("Request Body:", req.body); // Print the request body to the console
+
   try {
     // Extract recipe details from the request body
     const {
