@@ -1,5 +1,6 @@
 const axios = require("axios");
 const api_domain = "https://api.spoonacular.com/recipes";
+const spooncular_apiKey = "bc0c77ca8b4a4a518f9115acb4e0a38a";
 
 
 
@@ -18,6 +19,14 @@ async function getRecipeInformation(recipe_id) {
     });
 }
 
+async function getRandomRecipes() {
+    return await axios.get(`${api_domain}/${recipe_id}/random`, {
+        params: {
+            number: 3,
+            apiKey: process.env.spooncular_apiKey
+        }
+    });
+}
 
 
 async function getRecipeDetails(recipe_id) {
