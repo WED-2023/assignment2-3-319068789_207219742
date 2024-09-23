@@ -82,7 +82,9 @@ router.post("/uploadRecipe", async (req, res, next) => {
     } = req.body;
 
     // Convert instructions array to HTML formatted string
-    const instructionsHTML = "<ol>" + instructions.map(step => `<li>${step}</li>`).join('') + "</ol>";
+    // const instructionsHTML = "<ol>" + instructions.map(step => `<li>${step}</li>`).join('') + "</ol>";
+    const instructionsHTML = "<ol>" + instructions.map(text => `<li>${text}</li>`).join('') + "</ol>";
+
 
     // Insert recipe into the recipes table with the HTML-formatted instructions
     const result = await DButils.execQuery(

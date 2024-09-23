@@ -100,6 +100,8 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500).send({ message: err.message, success: false });
 });
 
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 // const server = app.listen(port, () => {
