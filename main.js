@@ -90,9 +90,9 @@ app.use(function (req, res, next) {
 app.get("/alive", (req, res) => res.send("I'm alive"));
 
 // Routings
-app.use("/users", user);
-app.use(recipes);
-app.use(auth);
+app.use("/user", user);
+app.use("/recipes", recipes);
+app.use("/auth", auth);
 
 // Default router
 app.use(function (err, req, res, next) {
@@ -100,6 +100,8 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500).send({ message: err.message, success: false });
 });
 
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 // const server = app.listen(port, () => {

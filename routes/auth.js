@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 
 
 
-router.post("/auth/Register", async (req, res, next) => {
+router.post("/Register", async (req, res, next) => {
   try {
     // parameters exists
     // valid parameters
@@ -47,7 +47,7 @@ router.post("/auth/Register", async (req, res, next) => {
   }
 });
 
-router.post("/auth/Login", async (req, res, next) => {
+router.post("/Login", async (req, res, next) => {
   try {
     // check that username exists
     const users = await DButils.execQuery("SELECT username FROM users");
@@ -76,7 +76,7 @@ router.post("/auth/Login", async (req, res, next) => {
   }
 });
 
-router.post("/auth/Logout", function (req, res) {
+router.post("/Logout", function (req, res) {
   req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
   res.send({ success: true, message: "logout succeeded" });
 });
