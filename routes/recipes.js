@@ -4,6 +4,7 @@ const DButils = require("../routes/utils/DButils");
 const recipes_utils = require("./utils/recipes_utils");
 const multer = require("multer");
 const path = require("path");
+const MySql = require("../routes/utils/MySql");
 
 
 router.get("/randomRecipes", async (req, res, next) => {
@@ -60,82 +61,68 @@ router.post("/uploadImage", upload.single("image"), (req, res) => {
   }
 });
 
-
 router.post("/uploadRecipe", async (req, res, next) => {
-
   console.log("Request Body:", req.body); // Print the request body to the console
+  const connection = await MySql.connection();
 
   try {
-    // Extract recipe details from the request body
+    // Start a manual transaction
+    await connection.query('START TRANSACTION');
+
     const {
-      title,
-      readyInMinutes,
-      image,
-      servings,
-      summary,
-      ingredients,
-      instructions,
-      cuisines,
-      diets,
-      intolerances,
-      username
+      title, readyInMinutes, image, servings, summary, ingredients,
+      instructions, cuisines, diets, intolerances, username
     } = req.body;
 
     // Convert instructions array to HTML formatted string
-    // const instructionsHTML = "<ol>" + instructions.map(step => `<li>${step}</li>`).join('') + "</ol>";
     const instructionsHTML = "<ol>" + instructions.map(text => `<li>${text}</li>`).join('') + "</ol>";
 
-
-    // Insert recipe into the recipes table with the HTML-formatted instructions
-    const result = await DButils.execQuery(
-      `INSERT INTO recipes (title, readyInMinutes, image, servings, summary, aggregateLikes, instructions)
-      VALUES ('${title}', ${readyInMinutes}, '${image}', ${servings}, '${summary}', 0, '${instructionsHTML}')`
-    );
+    // Insert recipe into the recipes table
+    const recipeInsertQuery = `INSERT INTO recipes (title, readyInMinutes, image, servings, summary, aggregateLikes, instructions)
+      VALUES ('${title}', ${readyInMinutes}, '${image}', ${servings}, '${summary}', 0, '${instructionsHTML}')`;
+    const result = await connection.query(recipeInsertQuery);
     const newRecipeId = result.insertId;
 
     // Insert ingredients into the ingredients table
     for (const ingredient of ingredients) {
-      await DButils.execQuery(
-        `INSERT INTO ingredients (recipeId, amount, unit, name)
-        VALUES (${newRecipeId}, ${ingredient.amount}, '${ingredient.unit}', '${ingredient.name}')`
-      );
+      await connection.query(`INSERT INTO ingredients (recipeId, amount, unit, name)
+        VALUES (${newRecipeId}, ${ingredient.amount}, '${ingredient.unit}', '${ingredient.name}')`);
     }
 
-    // Insert cuisines into the recipe_cuisines table
+    // Insert cuisines, diets, intolerances (similar logic for each)
     for (const cuisine of cuisines) {
-      await DButils.execQuery(
-        `INSERT INTO recipe_cuisines (recipe_id, cuisine_id)
-        VALUES (${newRecipeId}, (SELECT id FROM cuisines WHERE name = '${cuisine}'))`
-      );
+      await connection.query(`INSERT INTO recipe_cuisines (recipe_id, cuisine_id)
+        VALUES (${newRecipeId}, (SELECT id FROM cuisines WHERE name = '${cuisine}'))`);
     }
 
-    // Insert diets into the recipe_diets table
     for (const diet of diets) {
-      await DButils.execQuery(
-        `INSERT INTO recipe_diets (recipe_id, diet_id)
-        VALUES (${newRecipeId}, (SELECT id FROM diets WHERE name = '${diet}'))`
-      );
+      await connection.query(`INSERT INTO recipe_diets (recipe_id, diet_id)
+        VALUES (${newRecipeId}, (SELECT id FROM diets WHERE name = '${diet}'))`);
     }
 
-    // Insert intolerances into the recipe_intolerances table
     for (const intolerance of intolerances) {
-      await DButils.execQuery(
-        `INSERT INTO recipe_intolerances (recipe_id, intolerance_id)
-        VALUES (${newRecipeId}, (SELECT id FROM intolerances WHERE name = '${intolerance}'))`
-      );
+      await connection.query(`INSERT INTO recipe_intolerances (recipe_id, intolerance_id)
+        VALUES (${newRecipeId}, (SELECT id FROM intolerances WHERE name = '${intolerance}'))`);
     }
 
-    // Insert the new recipe ID into the my_recipes table with the associated username
-    await DButils.execQuery(
-      `INSERT INTO my_recipes (username, recipeId) VALUES ('${username}', ${newRecipeId})`
-    );
+    // Insert into my_recipes table
+    await connection.query(`INSERT INTO my_recipes (username, recipeId) VALUES ('${username}', ${newRecipeId})`);
+
+    // Commit the transaction
+    await connection.query('COMMIT');
 
     res.status(201).send({ message: "Recipe uploaded successfully", success: true });
+
   } catch (error) {
+    // Rollback transaction on error
+    await connection.query('ROLLBACK');
+    console.error('Transaction rolled back due to error:', error);
     next(error);
+  } finally {
+    // Release the connection
+    await connection.release();
   }
 });
-
 
 
 router.get("/getFullRecipe", async (req, res, next) => {
